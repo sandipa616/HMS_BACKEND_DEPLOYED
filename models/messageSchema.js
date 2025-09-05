@@ -6,13 +6,13 @@ const messageSchema = new mongoose.Schema({
     type: String,
     required: true,
     minLength: [3, "First Name must contain at least 3 characters!"],
-    match: [/^[A-Za-z ]+$/, "First Name must contain only letters"],
+    // Regex removed
   },
   lastName: {
     type: String,
     required: true,
     minLength: [3, "Last Name must contain at least 3 characters!"],
-    match: [/^[A-Za-z ]+$/, "Last Name must contain only letters"],
+    // Regex removed
   },
   email: {
     type: String,
@@ -22,7 +22,9 @@ const messageSchema = new mongoose.Schema({
   phone: {
     type: String,
     required: true,
-    match: [/^\d{10}$/, "Phone number must contain exactly 10 digits"],
+    minLength: [10, "Phone number must contain at least 10 digits"],
+    maxLength: [10, "Phone number must contain at most 10 digits"],
+    // Regex removed
   },
   message: {
     type: String,

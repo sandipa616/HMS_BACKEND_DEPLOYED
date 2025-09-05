@@ -9,13 +9,13 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: [true, "First Name Is Required!"],
       minLength: [3, "First Name Must Contain At Least 3 Characters!"],
-      match: [/^[A-Za-z ]+$/, "First Name must contain only letters"],
+      // Regex removed
     },
     lastName: {
       type: String,
       required: [true, "Last Name Is Required!"],
       minLength: [3, "Last Name Must Contain At Least 3 Characters!"],
-      match: [/^[A-Za-z ]+$/, "Last Name must contain only letters"],
+      // Regex removed
     },
     email: {
       type: String,
@@ -26,7 +26,9 @@ const userSchema = new mongoose.Schema(
     phone: {
       type: String,
       required: [true, "Phone Is Required!"],
-      match: [/^\d{10}$/, "Phone Number Must Contain Exactly 10 Digits!"],
+      minLength: [10, "Phone Number Must Contain Exactly 10 Digits!"],
+      maxLength: [10, "Phone Number Must Contain Exactly 10 Digits!"],
+      // Regex removed
     },
     dob: {
       type: Date,
@@ -59,7 +61,7 @@ const userSchema = new mongoose.Schema(
       url: String,
     },
   },
-  { timestamps: true } // automatically adds createdAt and updatedAt
+  { timestamps: true }
 );
 
 // Hash password before saving
