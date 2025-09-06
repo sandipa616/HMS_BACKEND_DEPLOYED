@@ -2,18 +2,9 @@ import { catchAsyncErrors } from "../middlewares/catchAsyncErrors.js";
 import ErrorHandler from "../middlewares/errorMiddleware.js";
 import { Appointment } from "../models/appointmentSchema.js";
 import { User } from "../models/userSchema.js";
-import nodemailer from "nodemailer";
+import { sendEmail } from "../utils/sendEmail.js";
 
-// Nodemailer transporter
-const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    user: process.env.EMAIL,      // your personal Gmail
-    pass: process.env.EMAIL_PASS, // 16-character App Password
-  },
-});
-
-// Create a new appointment
+// ----------------- CREATE NEW APPOINTMENT -----------------
 export const postAppointment = catchAsyncErrors(async (req, res, next) => {
   const {
     firstName,
@@ -96,7 +87,7 @@ export const postAppointment = catchAsyncErrors(async (req, res, next) => {
   });
 });
 
-// Get all appointments (Admin)
+// ----------------- GET ALL APPOINTMENTS (ADMIN) -----------------
 export const getAllAppointments = catchAsyncErrors(async (req, res, next) => {
   const appointments = await Appointment.find();
   res.status(200).json({
@@ -105,7 +96,7 @@ export const getAllAppointments = catchAsyncErrors(async (req, res, next) => {
   });
 });
 
-// Update appointment status & send email to patient
+// ----------------- UPDATE APPOINTMENT STATUS -----------------
 export const updateAppointmentStatus = catchAsyncErrors(async (req, res, next) => {
   const { id } = req.params;
   const { status } = req.body;
@@ -121,8 +112,7 @@ export const updateAppointmentStatus = catchAsyncErrors(async (req, res, next) =
   await appointment.save();
 
   // Send email to patient
-  const mailOptions = {
-    from: `"Medora – Hetauda Hospital" <${process.env.EMAIL}>`,
+  await sendEmail({
     to: appointment.email,
     subject: "Your Appointment Status Update",
     html: `
@@ -133,18 +123,41 @@ export const updateAppointmentStatus = catchAsyncErrors(async (req, res, next) =
       <hr>
       <p>Thank you,<br/>Medora Team<br/>Hetauda Hospital</p>
     `,
-  };
+  });
 
-  await transporter.sendMail(mailOptions);
+  // Notify doctor if status is "Accepted"
+  if (status === "Accepted") {
+    const doctor = await User.findById(appointment.doctorId);
+    if (doctor && doctor.email) {
+      await sendEmail({
+        to: doctor.email,
+        subject: "New Patient Assigned",
+        html: `
+          <h2>Medora – Hetauda Hospital</h2>
+          <p>Dear Dr. ${doctor.firstName},</p>
+          <p>A new patient has been assigned to you:</p>
+          <ul>
+            <li>Name: ${appointment.firstName} ${appointment.lastName}</li>
+            <li>Email: ${appointment.email}</li>
+            <li>Phone: ${appointment.phone}</li>
+            <li>Appointment Date: ${appointment.appointment_date}</li>
+            <li>Department: ${appointment.department}</li>
+          </ul>
+          <hr>
+          <p>Thank you,<br/>Medora Team<br/>Hetauda Hospital</p>
+        `,
+      });
+    }
+  }
 
   res.status(200).json({
     success: true,
-    message: "Appointment Status Updated and Email Sent to Patient!",
+    message: "Appointment Status Updated and Emails Sent!",
     appointment,
   });
 });
 
-// Delete appointment
+// ----------------- DELETE APPOINTMENT -----------------
 export const deleteAppointment = catchAsyncErrors(async (req, res, next) => {
   const { id } = req.params;
   let appointment = await Appointment.findById(id);

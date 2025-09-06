@@ -117,7 +117,7 @@ export const addNewAdmin = catchAsyncErrors(async (req, res, next) => {
         <li>Email: ${admin.email}</li>
         <li>Password: ${password}</li>
       </ul>
-      <p>Please change your password after first login.</p>
+      
       <hr>
       <p>Thank you,<br/>Medora Team</p>
     `,
@@ -193,22 +193,17 @@ export const addNewDoctor = catchAsyncErrors(async (req, res, next) => {
 
   // Send welcome email
   await sendEmail({
-    to: doctor.email,
-    subject: "Welcome to Medora – Hetauda Hospital",
-    html: `
-      <h2>Welcome to Medora</h2>
-      <p>Dear ${doctor.firstName},</p>
-      <p>Your account has been created as a <b>Doctor</b>.</p>
-      <p>Login credentials:</p>
-      <ul>
-        <li>Email: ${doctor.email}</li>
-        <li>Password: ${password}</li>
-      </ul>
-      <p>Please change your password after first login.</p>
-      <hr>
-      <p>Thank you,<br/>Medora Team</p>
-    `,
-  });
+  to: doctor.email,
+  subject: "Registered with Medora – Hetauda Hospital",
+  html: `
+    <h2>Welcome to Medora</h2>
+    <p>Dear Dr. ${doctor.firstName},</p>
+    <p>You have been successfully registered in our system as a <b>Doctor</b>.</p>
+    <p>We look forward to working with you.</p>
+    <hr>
+    <p>Thank you,<br/>Medora Team</p>
+  `,
+});
 
   res
     .status(200)
