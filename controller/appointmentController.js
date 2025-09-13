@@ -177,10 +177,7 @@ export const deleteAppointment = catchAsyncErrors(async (req, res, next) => {
   if (!appointment) {
     return next(new ErrorHandler("Appointment Not Found", 404));
   }
-  const previousStatus = appointment.status;
-  appointment.status = "Deleted";
-  await appointment.save();
-  if (previousStatus !== "Rejected") {
+  
     await sendEmail({
       to: appointment.email,
       subject: "Appointment Cancelled",
@@ -195,7 +192,7 @@ export const deleteAppointment = catchAsyncErrors(async (req, res, next) => {
         <p>Thank you,<br/>Medora Team<br/>Hetauda Hospital</p>
       `,
     });
-  }
+  
 
 
   res.status(200).json({
