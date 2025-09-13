@@ -193,7 +193,7 @@ export const deleteAppointment = catchAsyncErrors(async (req, res, next) => {
       `,
     });
   
-
+   await appointment.deleteOne();
 
   res.status(200).json({
     success: true,
