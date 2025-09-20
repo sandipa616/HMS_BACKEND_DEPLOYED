@@ -149,15 +149,19 @@ export const updateAppointmentStatus = catchAsyncErrors(async (req, res, next) =
       <hr>
       <p>Thank you,<br/>Medora Team<br/>Hetauda Hospital</p>
     `;
-  } else {
-    patientMessage = `
-      <h2>Medora – Hetauda Hospital</h2>
-      <p>Dear ${appointment.firstName},</p>
-      <p>Your appointment status has been updated to: <b>${status}</b>.</p>
-      <hr>
-      <p>Thank you,<br/>Medora Team<br/>Hetauda Hospital</p>
-    `;
-  }
+  } 
+  else if (status === "Pending") {
+  patientMessage = `
+    <h2>Medora – Hetauda Hospital</h2>
+    <p>Dear ${appointment.firstName},</p>
+    <p>Your appointment request with Dr. ${appointment.doctor.firstName} ${appointment.doctor.lastName} 
+    scheduled on <b>${appointment.appointment_date}</b> in the <b>${appointment.department}</b> department 
+    is currently <b>pending review</b>.</p>
+    <p>Our admin team will review and update you soon. Please check your email for further updates.</p>
+    <hr>
+    <p>Thank you for your patience,<br/>Medora Team<br/>Hetauda Hospital</p>
+  `;
+}
 
   // Send patient email
   await sendEmail({
