@@ -37,6 +37,11 @@ export const postAppointment = catchAsyncErrors(async (req, res, next) => {
   ) {
     return next(new ErrorHandler("Please fill full form", 400));
   }
+  const today = new Date();
+  const selectedDate = new Date(appointment_date);
+  if (selectedDate < today.setHours(0, 0, 0, 0)) {
+    return next(new ErrorHandler("Appointment date cannot be in the past", 400));
+  }
 
   // Check if doctor exists
   const isConflict = await User.find({
