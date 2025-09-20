@@ -209,26 +209,12 @@ export const deleteAppointment = catchAsyncErrors(async (req, res, next) => {
   if (!appointment) {
     return next(new ErrorHandler("Appointment Not Found", 404));
   }
+
   
-    await sendEmail({
-      to: appointment.email,
-      subject: "Appointment Cancelled",
-      html: `
-        <h2>Medora – Hetauda Hospital</h2>
-        <p>Dear ${appointment.firstName},</p>
-        <p>Your appointment with Dr. ${appointment.doctor.firstName} ${appointment.doctor.lastName} 
-        scheduled on <b>${appointment.appointment_date}</b> in the <b>${appointment.department}</b> department
-        has been <span style="color:red">cancelled</span> by the admin.</p>
-        <p>If you have any questions, please contact our support.</p>
-        <hr>
-        <p>Thank you,<br/>Medora Team<br/>Hetauda Hospital</p>
-      `,
-    });
-  
-   await appointment.deleteOne();
+  await appointment.deleteOne();
 
   res.status(200).json({
     success: true,
-    message: "Appointment Deleted & Cancellation Email Sent!",
+    message: "Appointment Deleted!",
   });
 });
