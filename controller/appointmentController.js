@@ -6,91 +6,60 @@ import { sendEmail } from "../utils/sendEmail.js";
 
 // ----------------- CREATE NEW APPOINTMENT -----------------
 export const postAppointment = catchAsyncErrors(async (req, res, next) => {
-  const {
-    firstName,
-    lastName,
-    email,
-    phone,
-    dob,
-    gender,
-    appointment_date,
-    department,
-    doctor_firstName,
-    doctor_lastName,
-    hasVisited,
-    address,
-  } = req.body;
+  const { appointment_date, department, doctor_firstName, doctor_lastName } = req.body;
 
-  // Validate required fields
-  if (
-    !firstName ||
-    !lastName ||
-    !email ||
-    !phone ||
-    !dob ||
-    !gender ||
-    !appointment_date ||
-    !department ||
-    !doctor_firstName ||
-    !doctor_lastName ||
-    !address
-  ) {
-    return next(new ErrorHandler("Please fill full form", 400));
+  // ✅ get logged-in patient
+  const patient = await User.findById(req.user._id);
+  if (!patient) {
+    return next(new ErrorHandler("Patient not found", 404));
   }
+
+  // ✅ validate date
   const today = new Date();
   const selectedDate = new Date(appointment_date);
   if (selectedDate < today.setHours(0, 0, 0, 0)) {
     return next(new ErrorHandler("Appointment date cannot be in the past", 400));
   }
 
-  // Check if doctor exists
-  const isConflict = await User.find({
+  // ✅ check doctor
+  const doctor = await User.findOne({
     firstName: doctor_firstName,
     lastName: doctor_lastName,
     role: "Doctor",
     doctorDepartment: department,
   });
-
-  if (isConflict.length === 0) {
+  if (!doctor) {
     return next(new ErrorHandler("Doctor not found!", 400));
   }
-  if (isConflict.length > 1) {
-    return next(
-      new ErrorHandler(
-        "Doctor Conflict! Please contact through Email or Phone",
-        404
-      )
-    );
-  }
 
-  const doctorId = isConflict[0]._id;
-  const patientId = req.user._id;
-
+  // ✅ create appointment (patient info comes from logged-in user, not form)
   const appointment = await Appointment.create({
-    firstName,
-    lastName,
-    email,
-    phone,
-    dob,
-    gender,
+    patientId: patient._id,
+    doctorId: doctor._id,
+    firstName: patient.firstName,
+    lastName: patient.lastName,
+    email: patient.email,
+    phone: patient.phone,
+    dob: patient.dob,
+    gender: patient.gender,
+    address: patient.address,
     appointment_date,
     department,
     doctor: {
-      firstName: doctor_firstName,
-      lastName: doctor_lastName,
+      firstName: doctor.firstName,
+      lastName: doctor.lastName,
     },
-    hasVisited,
-    address,
-    doctorId,
-    patientId,
+    hasVisited: false,
   });
-   await sendEmail({
-    to: email,
+
+  // ✅ send confirmation email
+  await sendEmail({
+    to: patient.email,
     subject: "Appointment Request Submitted",
     html: `
       <h2>Medora – Hetauda Hospital</h2>
-      <p>Dear ${firstName},</p>
-      <p>Your appointment request with Dr. ${doctor_firstName} ${doctor_lastName}
+      <p>Dear ${patient.firstName},</p>
+      <p>Your appointment request with Dr. ${doctor.firstName} ${doctor.lastName}
       on <b>${appointment_date}</b> has been submitted successfully.</p>
       <p>Please wait for confirmation from our admin team.</p>
       <hr>
@@ -104,6 +73,7 @@ export const postAppointment = catchAsyncErrors(async (req, res, next) => {
     appointment,
   });
 });
+
 
 // ----------------- GET ALL APPOINTMENTS (ADMIN) -----------------
 export const getAllAppointments = catchAsyncErrors(async (req, res, next) => {
