@@ -6,7 +6,7 @@ import { sendEmail } from "../utils/sendEmail.js";
 
 // ----------------- CREATE NEW APPOINTMENT -----------------
 export const postAppointment = catchAsyncErrors(async (req, res, next) => {
-  const { appointment_date, department, doctor_firstName, doctor_lastName } = req.body;
+  const { appointment_date, department, doctor_firstName, doctor_lastName ,address: frontendAddress, hasVisited} = req.body;
 
   // ✅ get logged-in patient
   const patient = await User.findById(req.user._id);
@@ -42,14 +42,14 @@ export const postAppointment = catchAsyncErrors(async (req, res, next) => {
     phone: patient.phone,
     dob: patient.dob,
     gender: patient.gender,
-    address: patient.address,
+    address: frontendAddress ||patient.address,
     appointment_date,
     department,
     doctor: {
       firstName: doctor.firstName,
       lastName: doctor.lastName,
     },
-    hasVisited: false,
+    hasVisited: hasVisited,
   });
 
   // ✅ send confirmation email
